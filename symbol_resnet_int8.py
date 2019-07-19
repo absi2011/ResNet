@@ -128,7 +128,7 @@ def resnet_int8(units, num_stage, filter_list, num_classes, data_type, bottle_ne
     if data_type == 'cifar10':
         weight = mx.sym.Variable(name="conv0_weight", shape=(filter_list[0], 3, 3, 3))
         weight_q = mx.sym.Quantization_int8(weight, name="conv0_weight_quant", quant_mod=quant_mod)
-        body = mx.sym.Convolution(data=data, num_filter=filter_list[0], kernel=(3, 3), stride=(1, 1) pad=(1, 1),
+        body = mx.sym.Convolution(data=data, num_filter=filter_list[0], kernel=(3, 3), stride=(1, 1), pad=(1, 1),
                                    no_bias=True, name="conv0", workspace=workspace, weight=weight_q)
     elif data_type == 'imagenet':
         weight = mx.sym.Variable(name="conv0_weight", shape=(filter_list[0], 3, 7, 7))
@@ -149,7 +149,7 @@ def resnet_int8(units, num_stage, filter_list, num_classes, data_type, bottle_ne
         body = residual_unit_int8(body, filter_list[i], filter_list[i + 1], (1 if i == 0 else 2, 1 if i == 0 else 2), False,
                              name='stage%d_unit%d' % (i + 1, 1), bottle_neck=bottle_neck, workspace=workspace,
                              memonger=memonger)
-        for j in range(units[i] - 1):
+        for j in range(int(units[i]-1)):
             body = residual_unit_int8(body, filter_list[i + 1], filter_list[i + 1], (1, 1), True, name='stage%d_unit%d' % (i + 1, j + 2),
                                  bottle_neck=bottle_neck, workspace=workspace, memonger=memonger)
     bn1 = mx.sym.BatchNorm(data=body, fix_gamma=False, eps=eps, momentum=bn_mom, name='bn1')
