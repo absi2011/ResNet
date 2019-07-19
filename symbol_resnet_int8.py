@@ -118,7 +118,7 @@ def residual_unit_int8(data, channel, num_filter, stride, dim_match, name, bottl
 
         return conv2 + shortcut
         
-def resnet_int8(units, num_stage, filter_list, num_classes, data_type, bottle_neck=True,
+def resnet_int8(units, num_stage, filter_list, num_class, data_type, bottle_neck=True,
            bn_mom=0.9, workspace=512, memonger=False, grad_scale=1.0, is_train=True, quant_mod='power2'):
     num_unit = len(units)
     assert (num_unit == num_stage)
@@ -162,5 +162,5 @@ def resnet_int8(units, num_stage, filter_list, num_classes, data_type, bottle_ne
 
     pool1 = mx.symbol.Pooling(data=relu1, global_pool=True, kernel=(7, 7), pool_type='avg', name='pool1')
     flat = mx.symbol.Flatten(data=pool1)
-    fc1 = mx.symbol.FullyConnected(data=flat, num_hidden=num_classes, name='fc1')
+    fc1 = mx.symbol.FullyConnected(data=flat, num_hidden=num_class, name='fc1')
     return mx.symbol.SoftmaxOutput(data=fc1, name='softmax')
