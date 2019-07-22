@@ -54,6 +54,7 @@ def main():
                         memonger=args.memonger)
     else:
          raise ValueError("do not support {} yet".format(args.data_type))
+    symbol.save('resnet_int8.json')
     kv = mx.kvstore.create(args.kv_store)
     devs = mx.cpu() if args.gpus is None else [mx.gpu(int(i)) for i in args.gpus.split(',')]
     epoch_size = max(int(args.num_examples / args.batch_size / kv.num_workers), 1)
@@ -70,6 +71,14 @@ def main():
         import memonger
         symbol = memonger.search_plan(symbol, data=(args.batch_size, 3, 32, 32) if args.data_type=="cifar10"
                                                     else (args.batch_size, 3, 224, 224))
+
+    #for arg in symbol.list_arguments():
+    #    if 'quant' in arg:
+    #        print(arg)
+    #for arg in symbol.list_auxiliary_states():
+    #    if 'quant' in arg:
+    #        print('aux: {}'.format(arg))
+
     train = mx.io.ImageRecordIter(
         path_imgrec         = os.path.join(args.data_dir, "cifar10_train.rec") if args.data_type == 'cifar10' else
                               os.path.join(args.data_dir, "train_256_q90.rec") if args.aug_level == 1
@@ -131,6 +140,28 @@ def main():
         kvstore            = kv,
         batch_end_callback = mx.callback.Speedometer(args.batch_size, args.frequent),
         epoch_end_callback = checkpoint)
+
+    # model = mx.mod.Module(
+    #     context=devs,
+    #     symbol=network
+    # )
+    #
+    # model.fit(train,
+    #           begin_epoch=args.load_epoch if args.load_epoch else 0,
+    #           num_epoch=args.num_epochs,
+    #           eval_data=val,
+    #           eval_metric=eval_metrics,
+    #           kvstore=kv,
+    #           optimizer=args.optimizer,
+    #           optimizer_params=optimizer_params,
+    #           initializer=initializer,
+    #           arg_params=arg_params,
+    #           aux_params=aux_params,
+    #           batch_end_callback=batch_end_callbacks,
+    #           epoch_end_callback=checkpoint,
+    #           allow_missing=True,
+    #           monitor=monitor)
+
     # logging.info("top-1 and top-5 acc is {}".format(model.score(X = val,
     #               eval_metric = ['acc', mx.metric.create('top_k_accuracy', top_k = 5)])))
 
